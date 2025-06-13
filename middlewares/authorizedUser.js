@@ -12,9 +12,6 @@ const validateSignup = (req, res, next) => {
   next();
 };
 
-
-
-
 const validateLogin = (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password) {
