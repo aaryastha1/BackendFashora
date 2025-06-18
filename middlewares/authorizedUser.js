@@ -1,6 +1,6 @@
 const validateSignup = (req, res, next) => {
-  const { name, email, password } = req.body;
-  if (!name || !email || !password) {
+  const { name, email, phoneNumber, password } = req.body;
+  if (!name || !email || !phoneNumber || !password) {
     return res.status(400).json({ message: 'All fields are required' });
   }
   if (!/\S+@\S+\.\S+/.test(email)) {

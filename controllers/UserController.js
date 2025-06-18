@@ -4,10 +4,10 @@ const jwt = require("jsonwebtoken")
 
 
 exports.registerUser = async (req, res) => {
-    const {name, email, password} = req.body
+    const {name, email, phoneNumber, password} = req.body
     console.log(req.body)
     //validation
-    if(!name|| !email || !password){
+    if(!name|| !email || !phoneNumber || !password){
         return res.status(400).json(
             {"success": false, "message" : "Missing fields"}
 
@@ -19,7 +19,9 @@ exports.registerUser = async (req, res) => {
         const existingUser = await User.findOne(
             {
                 $or: [{"name": name},
-                    {"email": email}]
+                    {"email": email},
+                    {"phoneNumber": phoneNumber},
+                ]
                 
             }
         )
@@ -41,6 +43,7 @@ exports.registerUser = async (req, res) => {
         const newUser = new User ({
             name,
             email,
+            phoneNumber,
             password: hasedPas
 
         })
