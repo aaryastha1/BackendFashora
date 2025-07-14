@@ -5,6 +5,10 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   phoneNumber : { type: String, required: true, unique:true},
   password: { type: String, required: true },
+  role:{ type:String, default:"normal"},
+  filepath: { type: String }
+
+  
 });
 
 module.exports = mongoose.model('User', userSchema);
