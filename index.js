@@ -40,7 +40,7 @@ app.use("/api/admin/product", adminProductRoutes);
 app.use('/api/admins', adminRoute)
 
 
-
+// module.exports = app;
 
 app.use("/", (req, res)=>res.send("Hello"))
 app.listen(
