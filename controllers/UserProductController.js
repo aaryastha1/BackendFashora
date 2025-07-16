@@ -17,6 +17,8 @@ exports.getProductsByCategory = async (req, res) => {
       name: { $regex: `^${categoryName}$`, $options: 'i' }
     });
 
+    
+
     if (!category) {
       console.log("❌ Category not found");
       return res.status(404).json({ success: false, message: "Category not found" });

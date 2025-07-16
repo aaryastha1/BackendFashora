@@ -6,3 +6,4 @@ const { getProductsByCategory } = require('../controllers/UserProductController'
 router.get('/products', getProductsByCategory);
 
 module.exports = router;
+

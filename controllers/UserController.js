@@ -1,131 +1,227 @@
-const User = require("../models/User")
-const bcrypt = require("bcrypt")
-const jwt = require("jsonwebtoken")
+// const User = require("../models/User")
+// const bcrypt = require("bcrypt")
+// const jwt = require("jsonwebtoken")
 
 
-exports.registerUser = async (req, res) => {
-    const {name, email, phoneNumber, password} = req.body
-    console.log(req.body)
-    //validation
-    if(!name|| !email || !phoneNumber || !password){
-        return res.status(400).json(
-            {"success": false, "message" : "Missing fields"}
+// exports.registerUser = async (req, res) => {
+//     const {name, email, phoneNumber, password} = req.body
+//     console.log(req.body)
+//     //validation
+//     if(!name|| !email || !phoneNumber || !password){
+//         return res.status(400).json(
+//             {"success": false, "message" : "Missing fields"}
 
-        )
-    }
+//         )
+//     }
 
-    //db logic in try/catch
-    try{
-        const existingUser = await User.findOne(
-            {
-                $or: [{"name": name},
-                    {"email": email},
-                    {"phoneNumber": phoneNumber},
-                ]
+//     //db logic in try/catch
+//     try{
+//         const existingUser = await User.findOne(
+//             {
+//                 $or: [{"name": name},
+//                     {"email": email},
+//                     {"phoneNumber": phoneNumber},
+//                 ]
                 
-            }
-        )
+//             }
+//         )
 
-        if(existingUser){
-            return res.status(400).json(
-                {
-                    "success" : false,
-                    "message": "User exists"
-                }
-            )
-        }
+//         if(existingUser){
+//             return res.status(400).json(
+//                 {
+//                     "success" : false,
+//                     "message": "User exists"
+//                 }
+//             )
+//         }
 
-        //hash password
+//         //hash password
 
-        const hasedPas = await bcrypt.hash(
-            password, 10
-        ) // 10 is complexity
-        const newUser = new User ({
-            name,
-            email,
-            phoneNumber,
-            password: hasedPas
+//         const hasedPas = await bcrypt.hash(
+//             password, 10
+//         ) // 10 is complexity
+//         const newUser = new User ({
+//             name,
+//             email,
+//             phoneNumber,
+//             password: hasedPas
 
-        })
-        await newUser.save()
-        return res. status(201).json(
-            {
-                "succes":true,
-                "message": "User Registered"
+//         })
+//         await newUser.save()
+//         return res. status(201).json(
+//             {
+//                 "succes":true,
+//                 "message": "User Registered"
 
-            }
-
-
-        )
-    } catch(err){
-        return res.status(500).json(
-            {"success": false, "message": "Server error"}
-        )
-    }
-}
+//             }
 
 
+//         )
+//     } catch(err){
+//         return res.status(500).json(
+//             {"success": false, "message": "Server error"}
+//         )
+//     }
+// }
 
-exports.loginUser = async (req, res) => {
-    const { email, password } = req.body;
 
-    // Validate input
-    if (!email || !password) {
-        return res.status(400).json({
-            success: false,
-            message: "Missing fields"
-        });
-    }
 
-    try {
-        // Check if user exists
-        const getUser = await User.findOne({ email });
-        if (!getUser) {
-            return res.status(403).json({
-                success: false,
-                message: "User not found"
-            });
-        }
+// exports.loginUser = async (req, res) => {
+//     const { email, password } = req.body;
 
-        // Compare password
-        const passwordCheck = await bcrypt.compare(password, getUser.password);
-        if (!passwordCheck) {
-            return res.status(403).json({
-                success: false,
-                message: "Invalid credentials"
-            });
-        }
+//     // Validate input
+//     if (!email || !password) {
+//         return res.status(400).json({
+//             success: false,
+//             message: "Missing fields"
+//         });
+//     }
 
-        // Create JWT token
-        const payload = {
-            _id: getUser._id,
-            email: getUser.email,
-            fullname: getUser.fullName,
+//     try {
+//         // Check if user exists
+//         const getUser = await User.findOne({ email });
+//         if (!getUser) {
+//             return res.status(403).json({
+//                 success: false,
+//                 message: "User not found"
+//             });
+//         }
+
+//         // Compare password
+//         const passwordCheck = await bcrypt.compare(password, getUser.password);
+//         if (!passwordCheck) {
+//             return res.status(403).json({
+//                 success: false,
+//                 message: "Invalid credentials"
+//             });
+//         }
+
+//         // Create JWT token
+//         const payload = {
+//             _id: getUser._id,
+//             email: getUser.email,
+//             fullname: getUser.fullName,
           
-        };
+//         };
 
-        const token = jwt.sign(payload, process.env.SECRET || "defaultsecret", {
-            expiresIn: "7d"
-        });
+//         const token = jwt.sign(payload, process.env.SECRET || "defaultsecret", {
+//             expiresIn: "7d"
+//         });
 
-        return res.status(200).json({
-            success: true,
-            message: "Login successful",
-            data: {
-                id: getUser._id,
-                name: getUser.name,
-                email: getUser.email,
+//         return res.status(200).json({
+//             success: true,
+//             message: "Login successful",
+//             data: {
+//                 id: getUser._id,
+//                 name: getUser.name,
+//                 email: getUser.email,
                          
 
-            },
-            token
-        });
+//             },
+//             token
+//         });
 
-    } catch (err) {
-        console.error("Login error:", err); // show real issue
-        return res.status(500).json({
-            success: false,
-            message: "Server error"
-        });
+//     } catch (err) {
+//         console.error("Login error:", err); // show real issue
+//         return res.status(500).json({
+//             success: false,
+//             message: "Server error"
+//         });
+//     }
+// };
+
+
+const User = require("../models/User");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
+exports.registerUser = async (req, res) => {
+  const { name, email, phoneNumber, password, role = "normal" } = req.body; // accept role with default
+
+  // validation
+  if (!name || !email || !phoneNumber || !password) {
+    return res.status(400).json({ success: false, message: "Missing fields" });
+  }
+
+  try {
+    const existingUser = await User.findOne({
+      $or: [{ name }, { email }, { phoneNumber }],
+    });
+
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "User exists" });
     }
+
+    const hashedPas = await bcrypt.hash(password, 10);
+
+    const newUser = new User({
+      name,
+      email,
+      phoneNumber,
+      password: hashedPas,
+      role, // save role here
+    });
+
+    await newUser.save();
+
+    return res.status(201).json({
+      success: true,
+      message: "User Registered",
+      data: {
+        id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role, // return role
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+exports.loginUser = async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ success: false, message: "Missing fields" });
+  }
+
+  try {
+    const getUser = await User.findOne({ email });
+    if (!getUser) {
+      return res.status(403).json({ success: false, message: "User not found" });
+    }
+
+    const passwordCheck = await bcrypt.compare(password, getUser.password);
+    if (!passwordCheck) {
+      return res.status(403).json({ success: false, message: "Invalid credentials" });
+    }
+
+    // Include role in JWT payload
+    const payload = {
+      _id: getUser._id,
+      email: getUser.email,
+      fullname: getUser.fullName,
+      role: getUser.role, // add role
+    };
+
+    const token = jwt.sign(payload, process.env.SECRET || "defaultsecret", {
+      expiresIn: "7d",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      data: {
+        id: getUser._id,
+        name: getUser.name,
+        email: getUser.email,
+        role: getUser.role, // return role here
+      },
+      token,
+    });
+  } catch (err) {
+    console.error("Login error:", err);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
 };

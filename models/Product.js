@@ -7,7 +7,7 @@ const ProductSchema = new mongoose.Schema(
       required: true,
     },
     price: {
-      type: Number,
+      type: String,
       required: true,
     },
     categoryId: {
@@ -39,3 +39,5 @@ const ProductSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model('Product', ProductSchema);
+
+
