@@ -3,8 +3,8 @@ const User = require('../models/User');
 
 // validation middlewares
 const validateSignup = (req, res, next) => {
-  const { name, email, phone, password } = req.body;
-  if (!name || !email || !phone || !password) {
+  const { name, email, phoneNumber, password } = req.body;
+  if (!name || !email || !phoneNumber || !password) {
     return res.status(400).json({ message: 'All fields are required' });
   }
   if (!/\S+@\S+\.\S+/.test(email)) {
@@ -57,3 +57,4 @@ module.exports = {
   authenticateUser,
   isAdmin
 };
+
