@@ -26,7 +26,7 @@ const validateLogin = (req, res, next) => {
 
 // auth middlewares
 const authenticateUser = async (req, res, next) => {
-  try {
+  try {    
     const authHeader = req.headers.authorization;
     if (!authHeader) return res.status(403).json({ success: false, message: "Token required" });
 

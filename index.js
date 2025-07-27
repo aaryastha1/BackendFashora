@@ -45,16 +45,11 @@ app.use("/api/favorites", favoriteRoutes);
 //Admin
 
 connectDB()
-app.use("/api/auth", userRoutes)
+// app.use("/api/auth", userRoutes)
 app.use("/api/admin/users", adminUserRoutes)
 app.use("/api/admin/category", adminCategoryRoutes)
 app.use("/api/admin/product", adminProductRoutes);
 app.use('/api/admins', adminRoute)
-
-
-
-
-
 
 
 module.exports = app;

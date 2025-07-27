@@ -25,19 +25,7 @@ router.post("/place", async (req, res) => {
 
 });
 
-// GET /api/orders
-// router.get("/", async (req, res) => {
-//   try {
-//     const orders = await Order.find()
-//       .sort({ createdAt: -1 }) // newest first
-//       .populate("items.productId", "name image price"); // populate product details
 
-//     res.json(orders);
-//   } catch (err) {
-//     console.error("Error fetching orders:", err);
-//     res.status(500).json({ success: false, message: "Failed to fetch orders" });
-//   }
-// });
 
 
 router.get("/", async (req, res) => {
