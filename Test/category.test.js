@@ -195,5 +195,6 @@ describe('Category API', () => {
     expect(res.statusCode).toBe(404);
     expect(res.body.success).toBe(false);
     expect(res.body.message).toBe('Category not found');
+    
   });
 });
