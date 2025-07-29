@@ -101,4 +101,109 @@ describe('Product API', () => {
     expect(res.body.success).toBe(false);
     expect(res.body.message).toBe('Product not found');
   });
+
+
+  
+
+
+
+
+
+  it('should return 400 when invalid categoryId is provided on create', async () => {
+    const res = await request(app).post('/api/products').send({
+      name: 'Invalid CategoryId',
+      price: '20',
+      categoryId: '12345', // invalid ObjectId
+      userId: userId.toString(),
+      description: 'Test invalid categoryId',
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toMatch(/Invalid categoryId/);
+  });
+
+  it('should return 400 when invalid userId is provided on create', async () => {
+    const res = await request(app).post('/api/products').send({
+      name: 'Invalid UserId',
+      price: '20',
+      categoryId: categoryId.toString(),
+      userId: 'notvaliduserid',
+      description: 'Test invalid userId',
+    });
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toMatch(/Invalid userId/);
+  });
+
+  it('should update only product price without affecting other fields', async () => {
+    const product = await Product.create({
+      name: 'Price Update Product',
+      price: '100',
+      categoryId,
+      sellerId: userId,
+      description: 'Original description',
+    });
+    createdProductIds.push(product._id);
+
+    const res = await request(app)
+      .put(`/api/products/${product._id}`)
+      .send({ price: '150' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.price).toBe('150');
+    expect(res.body.data.name).toBe('Price Update Product');
+  });
+
+  it('should return 400 when updating product with invalid categoryId', async () => {
+    const product = await Product.create({
+      name: 'Invalid Cat Update',
+      price: '50',
+      categoryId,
+      sellerId: userId,
+      description: 'desc',
+    });
+    createdProductIds.push(product._id);
+
+    const res = await request(app)
+      .put(`/api/products/${product._id}`)
+      .send({ categoryId: 'invalidid' });
+
+    expect(res.statusCode).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toMatch(/Invalid categoryId/);
+  });
+
+  it('should search products by name', async () => {
+    const p1 = await Product.create({
+      name: 'SearchTest1',
+      price: '10',
+      categoryId,
+      sellerId: userId,
+      description: 'desc',
+    });
+    const p2 = await Product.create({
+      name: 'AnotherProduct',
+      price: '20',
+      categoryId,
+      sellerId: userId,
+      description: 'desc',
+    });
+    createdProductIds.push(p1._id, p2._id);
+
+    const res = await request(app)
+      .get('/api/products')
+      .query({ search: 'SearchTest' });
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.products.some(p => p.name === 'SearchTest1')).toBe(true);
+    expect(res.body.products.some(p => p.name === 'AnotherProduct')).toBe(false);
+  });
+
+
+
+
+
+  
 });

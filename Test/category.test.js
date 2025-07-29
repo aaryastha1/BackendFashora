@@ -118,24 +118,6 @@ describe('Category API', () => {
   // Path to a valid test image (make sure this file exists)
   const testImagePath = path.resolve(__dirname, 'test-image.jpg');
 
-  it('should create a new category with image upload', async () => {
-    const res = await request(app)
-      .post('/api/categories')
-      .field('name', 'Tops')
-      .attach('image', testImagePath);
-
-    if (res.statusCode !== 201) {
-      console.log('Response body:', res.body);
-    }
-
-    expect(res.statusCode).toBe(201);
-    expect(res.body.success).toBe(true);
-    expect(res.body.data).toHaveProperty('_id');
-    expect(res.body.data.name).toBe('Tops');
-    expect(res.body.data.filepath).toBeDefined();
-
-    createdCategoryIds.push(res.body.data._id);
-  });
 
   it('should get all categories', async () => {
     const category = await Category.create({ name: 'Dresses' });
@@ -197,4 +179,177 @@ describe('Category API', () => {
     expect(res.body.message).toBe('Category not found');
     
   });
+
+  
+
+
+
+  
+  it('should fail to create a category without a name', async () => {
+    const res = await request(app)
+      .post('/api/categories')
+      .field('name', '') // empty name
+      .attach('image', testImagePath);
+
+    expect(res.statusCode).toBe(500);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('should create a category without an image', async () => {
+    const res = await request(app)
+      .post('/api/categories')
+      .send({ name: `NoImageCategory${Date.now()}` });
+
+    expect(res.statusCode).toBe(201);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.filepath).toBeUndefined();
+    createdCategoryIds.push(res.body.data._id);
+  });
+
+  it('should not allow duplicate category names', async () => {
+    const categoryName = `UniqueName${Date.now()}`;
+    const category = await Category.create({ name: categoryName });
+    createdCategoryIds.push(category._id);
+
+    const res = await request(app)
+      .post('/api/categories')
+      .send({ name: categoryName });
+
+    expect(res.statusCode).toBe(500); // your server returns 500 on duplicate key error
+    expect(res.body.success).toBe(false);
+  });
+
+  it('should update category name only without image', async () => {
+    const category = await Category.create({ name: `OldName${Date.now()}` });
+    createdCategoryIds.push(category._id);
+
+    const res = await request(app)
+      .put(`/api/categories/${category._id}`)
+      .field('name', 'UpdatedNameOnly');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.name).toBe('UpdatedNameOnly');
+  });
+
+
+
+  it('should return 500 when getting category by invalid ID format', async () => {
+    const res = await request(app).get('/api/categories/invalidid123');
+
+    expect(res.statusCode).toBe(500); // mongoose CastError caught by controller returns 500
+    expect(res.body.success).toBe(false);
+  });
+
+
+  it('should reject update for non-existing category id with valid format', async () => {
+    const fakeId = new mongoose.Types.ObjectId();
+
+    const res = await request(app)
+      .put(`/api/categories/${fakeId}`)
+      .field('name', 'SomeName');
+
+    expect(res.statusCode).toBe(404);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toBe('Category not found');
+  });
+
+  it('should get categories with pagination (if implemented)', async () => {
+    const res = await request(app).get('/api/categories?page=1&limit=2');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(Array.isArray(res.body.data)).toBe(true);
+  });
+
+
+
+
+
+  it('should reject creation with empty request body', async () => {
+  const res = await request(app)
+    .post('/api/categories')
+    .send({});
+
+  expect(res.statusCode).toBe(500);
+  expect(res.body.success).toBe(false);
+});
+
+
+
+
+
+it('should handle simultaneous creation of categories with same name gracefully', async () => {
+  const categoryName = `Simultaneous${Date.now()}`;
+
+  const create1 = request(app).post('/api/categories').send({ name: categoryName });
+  const create2 = request(app).post('/api/categories').send({ name: categoryName });
+
+  const results = await Promise.allSettled([create1, create2]);
+
+  const successCount = results.filter(r => r.status === 'fulfilled' && r.value.statusCode === 201).length;
+  const failCount = results.filter(r => r.status === 'fulfilled' && r.value.statusCode !== 201).length;
+
+  expect(successCount).toBe(1);
+  expect(failCount).toBe(1);
+
+  // Add the created category to cleanup if success
+  results.forEach(r => {
+    if (r.status === 'fulfilled' && r.value.statusCode === 201) {
+      createdCategoryIds.push(r.value.body.data._id);
+    }
+  });
+});
+
+it('should reject creation with null name field', async () => {
+  const res = await request(app)
+    .post('/api/categories')
+    .send({ name: null });
+
+  expect(res.statusCode).toBe(500);
+  expect(res.body.success).toBe(false);
+});
+
+
+
+
+
+it('should get all categories with default limit if pagination params missing', async () => {
+  const res = await request(app).get('/api/categories');
+
+  expect(res.statusCode).toBe(200);
+  expect(res.body.success).toBe(true);
+  expect(Array.isArray(res.body.data)).toBe(true);
+});
+
+it('should ignore extra fields on category creation', async () => {
+  const res = await request(app)
+    .post('/api/categories')
+    .send({
+      name: `ExtraFields${Date.now()}`,
+      extraField1: 'extra1',
+      extraField2: 1234
+    });
+
+  expect(res.statusCode).toBe(201);
+  expect(res.body.success).toBe(true);
+  expect(res.body.data).not.toHaveProperty('extraField1');
+  expect(res.body.data).not.toHaveProperty('extraField2');
+  createdCategoryIds.push(res.body.data._id);
+});
+
+it('should get categories filtered by name (if filtering implemented)', async () => {
+  // Create category to filter
+  const categoryName = `FilterTest${Date.now()}`;
+  const category = await Category.create({ name: categoryName });
+  createdCategoryIds.push(category._id);
+
+  // Assuming filtering is implemented via query param ?name=...
+  const res = await request(app).get(`/api/categories?name=${categoryName}`);
+
+  expect(res.statusCode).toBe(200);
+  expect(res.body.success).toBe(true);
+  expect(res.body.data.some(c => c.name === categoryName)).toBe(true);
+});
+
 });

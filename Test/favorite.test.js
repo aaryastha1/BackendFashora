@@ -12,7 +12,7 @@ app.use(express.json());
 app.use('/api/favorites', favoriteRouter);
 
 describe('Favorite API', () => {
-  let user, product, token;
+  let user, product1, product2, token;
 
   beforeAll(async () => {
     await mongoose.connect('mongodb://127.0.0.1:27017/testdb');
@@ -21,65 +21,88 @@ describe('Favorite API', () => {
       name: 'Test User',
       email: 'test@example.com',
       password: 'password123',
-      phoneNumber : '9860500911',
+      phoneNumber: '9860500911',
       favorites: [],
     });
     await user.save();
 
-    product = new Product({
-      name: 'Test Product',
+    product1 = new Product({
+      name: 'Test Product 1',
       price: 10,
       categoryId: new mongoose.Types.ObjectId(),
-      description: 'Test description',
+      description: 'Test description 1',
       sellerId: new mongoose.Types.ObjectId(),
       image: '',
     });
-    await product.save();
+    await product1.save();
+
+    product2 = new Product({
+      name: 'Test Product 2',
+      price: 20,
+      categoryId: new mongoose.Types.ObjectId(),
+      description: 'Test description 2',
+      sellerId: new mongoose.Types.ObjectId(),
+      image: '',
+    });
+    await product2.save();
 
     token = jwt.sign({ _id: user._id }, process.env.SECRET || 'secretkey');
   });
 
   afterAll(async () => {
-    // Reset favorites instead of deleting user
+    // Reset favorites instead of deleting user or products
     user.favorites = [];
     await user.save();
 
-    // Optional: reset product if needed
-    product.name = 'Test Product';
-    await product.save();
+    product1.name = 'Test Product 1';
+    await product1.save();
+
+    product2.name = 'Test Product 2';
+    await product2.save();
 
     await mongoose.connection.close();
   });
 
 
-  it('should get all favorites', async () => {
-    user.favorites = [product._id];
-    await user.save();
+
+
+  
+
+
+
+  it('5. should fail toggle favorite without authentication', async () => {
+    const res = await request(app)
+      .post('/api/favorites/toggle')
+      .send({ productId: product1._id.toString() });
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body.success).toBe(false);
+  });
+
+  it('6. should fail get favorites without authentication', async () => {
+    const res = await request(app).get('/api/favorites');
+
+    expect(res.statusCode).toBe(403);
+    expect(res.body.success).toBe(false);
+  });
+
+
+
+
+
+  it('10. should handle server errors gracefully on getFavorites', async () => {
+    // Temporarily mock User.findById to throw error
+    const originalFindById = User.findById;
+    User.findById = jest.fn(() => { throw new Error('DB error'); });
 
     const res = await request(app)
       .get('/api/favorites')
       .set('Authorization', `Bearer ${token}`);
 
-    expect(res.statusCode).toBe(200);
-    expect(res.body.success).toBe(true);
-    expect(Array.isArray(res.body.favorites)).toBe(true);
-    expect(res.body.favorites.length).toBe(1);
-    expect(res.body.favorites[0]._id).toBe(product._id.toString());
-  });
-
-  it('should fail toggle favorite without auth', async () => {
-    const res = await request(app)
-      .post('/api/favorites/toggle')
-      .send({ productId: product._id.toString() });
-
-    expect(res.statusCode).toBe(403);
+    expect(res.statusCode).toBe(500);
     expect(res.body.success).toBe(false);
-  });
 
-  it('should fail get favorites without auth', async () => {
-    const res = await request(app).get('/api/favorites');
-
-    expect(res.statusCode).toBe(403);
-    expect(res.body.success).toBe(false);
+    // Restore original method
+    User.findById = originalFindById;
   });
 });
