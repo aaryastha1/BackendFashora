@@ -24,6 +24,8 @@ const validateLogin = (req, res, next) => {
   next();
 };
 
+
+
 // auth middlewares
 const authenticateUser = async (req, res, next) => {
   try {    

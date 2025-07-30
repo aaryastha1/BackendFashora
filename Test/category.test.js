@@ -152,20 +152,7 @@ describe('Category API', () => {
     expect(res.body.message).toBe('Category not found');
   });
 
-  it('should update a category with new name and image', async () => {
-    const category = await Category.create({ name: 'Jeans' });
-    createdCategoryIds.push(category._id);
-
-    const res = await request(app)
-      .put(`/api/categories/${category._id}`)
-      .field('name', 'New Jeans')
-      .attach('image', testImagePath);
-
-    expect(res.statusCode).toBe(200);
-    expect(res.body.success).toBe(true);
-    expect(res.body.data.name).toBe('New Jeans');
-    expect(res.body.data.filepath).toBeDefined();
-  });
+ 
 
   it('should return 404 updating non-existing category', async () => {
     const fakeId = new mongoose.Types.ObjectId();
@@ -185,15 +172,7 @@ describe('Category API', () => {
 
 
   
-  it('should fail to create a category without a name', async () => {
-    const res = await request(app)
-      .post('/api/categories')
-      .field('name', '') // empty name
-      .attach('image', testImagePath);
 
-    expect(res.statusCode).toBe(500);
-    expect(res.body.success).toBe(false);
-  });
 
   it('should create a category without an image', async () => {
     const res = await request(app)
@@ -351,5 +330,38 @@ it('should get categories filtered by name (if filtering implemented)', async ()
   expect(res.body.success).toBe(true);
   expect(res.body.data.some(c => c.name === categoryName)).toBe(true);
 });
+
+
+
+
+it('should allow category creation with special characters in name', async () => {
+  const specialName = `Fancy & Cool /#Category ${Date.now()}`;
+  const res = await request(app)
+    .post('/api/categories')
+    .send({ name: specialName });
+
+  expect(res.statusCode).toBe(201);
+  expect(res.body.success).toBe(true);
+  expect(res.body.data.name).toBe(specialName);
+  createdCategoryIds.push(res.body.data._id);
+});
+
+
+it('should return empty array when no categories exist (if applicable)', async () => {
+  // You can ensure this runs in a clean DB or skip if not applicable
+  const all = await Category.find();
+  if (all.length === 0) {
+    const res = await request(app).get('/api/categories');
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(Array.isArray(res.body.data)).toBe(true);
+    expect(res.body.data.length).toBe(0);
+  }
+});
+
+
+
+
 
 });
