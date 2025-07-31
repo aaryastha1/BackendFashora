@@ -364,4 +364,29 @@ it('should return empty array when no categories exist (if applicable)', async (
 
 
 
+
+
+
+it('should get category by valid ObjectId but not in DB', async () => {
+  const fakeId = new mongoose.Types.ObjectId();
+  const res = await request(app).get(`/api/categories/${fakeId}`);
+
+  expect(res.statusCode).toBe(404);
+  expect(res.body.success).toBe(false);
+  expect(res.body.message).toBe('Category not found');
+});
+
+
+
+it('should return all categories even with unknown query params', async () => {
+  const res = await request(app).get('/api/categories?unknownParam=xyz');
+
+  expect(res.statusCode).toBe(200);
+  expect(res.body.success).toBe(true);
+  expect(Array.isArray(res.body.data)).toBe(true);
+});
+
+
+
+
 });

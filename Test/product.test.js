@@ -205,5 +205,58 @@ describe('Product API', () => {
 
 
 
-  
+
+
+it('should get a product by ID', async () => {
+  const product = await Product.create({
+    name: 'GetByIdProduct',
+    price: '200',
+    categoryId,
+    sellerId: userId,
+    description: 'Fetch by ID test',
+  });
+  createdProductIds.push(product._id);
+
+  const res = await request(app).get(`/api/products/${product._id}`);
+
+  expect(res.statusCode).toBe(200);
+  expect(res.body.success).toBe(true);
+  expect(res.body.data.name).toBe('GetByIdProduct');
+});
+
+it('should return 500 when getting product with invalid ID format', async () => {
+  const res = await request(app).get('/api/products/invalid123');
+
+  expect(res.statusCode).toBe(500);
+  expect(res.body.success).toBe(false);
+  expect(res.body.message).toBe('Server error');
+});
+
+
+
+it('should update multiple fields in a product', async () => {
+  const product = await Product.create({
+    name: 'MultiUpdate',
+    price: '300',
+    categoryId,
+    sellerId: userId,
+    description: 'Old description',
+  });
+  createdProductIds.push(product._id);
+
+  const res = await request(app)
+    .put(`/api/products/${product._id}`)
+    .send({
+      name: 'MultiUpdatedName',
+      price: '350',
+      description: 'Updated description',
+    });
+
+  expect(res.statusCode).toBe(200);
+  expect(res.body.success).toBe(true);
+  expect(res.body.data.name).toBe('MultiUpdatedName');
+  expect(res.body.data.price).toBe('350');
+  expect(res.body.data.description).toBe('Updated description');
+});
+
 });
