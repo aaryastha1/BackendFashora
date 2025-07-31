@@ -18,4 +18,3 @@ EXPOSE 2000
 #Entry point
 CMD ["node","server.js"]
 
-#docker run -d -p 5050:5050 --name backend backend-app
