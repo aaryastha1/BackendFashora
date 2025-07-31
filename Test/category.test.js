@@ -378,13 +378,13 @@ it('should get category by valid ObjectId but not in DB', async () => {
 
 
 
-// it('should return all categories even with unknown query params', async () => {
-//   const res = await request(app).get('/api/categories?unknownParam=xyz');
+it('should return all categories even with unknown query params', async () => {
+  const res = await request(app).get('/api/categories?unknownParam=xyz');
 
-//   expect(res.statusCode).toBe(200);
-//   expect(res.body.success).toBe(true);
-//   expect(Array.isArray(res.body.data)).toBe(true);
-// });
+  expect(res.statusCode).toBe(200);
+  expect(res.body.success).toBe(true);
+  expect(Array.isArray(res.body.data)).toBe(true);
+});
 
 
 
