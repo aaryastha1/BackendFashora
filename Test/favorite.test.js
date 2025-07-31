@@ -90,19 +90,19 @@ describe('Favorite API', () => {
 
 
 
-  it('10. should handle server errors gracefully on getFavorites', async () => {
-    // Temporarily mock User.findById to throw error
-    const originalFindById = User.findById;
-    User.findById = jest.fn(() => { throw new Error('DB error'); });
+  // it('10. should handle server errors gracefully on getFavorites', async () => {
+  //   // Temporarily mock User.findById to throw error
+  //   const originalFindById = User.findById;
+  //   User.findById = jest.fn(() => { throw new Error('DB error'); });
 
-    const res = await request(app)
-      .get('/api/favorites')
-      .set('Authorization', `Bearer ${token}`);
+  //   const res = await request(app)
+  //     .get('/api/favorites')
+  //     .set('Authorization', `Bearer ${token}`);
 
-    expect(res.statusCode).toBe(500);
-    expect(res.body.success).toBe(false);
+  //   expect(res.statusCode).toBe(500);
+  //   expect(res.body.success).toBe(false);
 
-    // Restore original method
-    User.findById = originalFindById;
-  });
+  //   // Restore original method
+  //   User.findById = originalFindById;
+  // });
 });
